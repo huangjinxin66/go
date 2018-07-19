@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>抓包</title>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <script src="/static/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <script src="/static/check.js"></script>
+    <script src="/static/add.js"></script>
+    <script src="/static/edit.js"></script>
+    <script src="/static/choose.js"></script>
+    <script src="/static/index.js"></script>
+    <style>
+        #state {
+            width: 780px;
+            border-collapse: collapse;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #dddddd
+        }
+
+        #state th {
+            height: 40px;
+            text-align: center;
+            vertical-align: middle
+        }
+
+        #state tr {
+            width: 780px;
+        }
+
+        #load {
+            width: 50px;
+            height: 50px;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            /*这行代码是关键*/
+            position: absolute;
+            z-index: 2;
+            display: none;
+        }
+
+        #load1 {
+            width: 50px;
+            height: 50px;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            /*这行代码是关键*/
+            position: absolute;
+            z-index: 3;
+            display: none;
+        }
+
+        #state td {
+            height: 60px;
+            text-align: center;
+            vertical-align: middle
+        }
+
+        span {
+            margin-left: 40px;
+        }
+
+        #edit_set_table {
+            width: 940px;
+            border-collapse: collapse;
+
+        }
+
+        #edit_set_table th {
+            height: 40px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #edit_set_table td {
+            height: 40px;
+            text-align: center;
+            vertical-align: middle
+        }
+
+        .modal-dialog {
+            width: 960px;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            /*这行代码是关键*/
+            position: absolute;
+
+            z-index: 1;
+        }
+
+        .special {
+            background-color: #89A4B1;
+        }
+
+        #choose_table {
+            width: 940px;
+            border-collapse: collapse;
+            border: 1px solid #dddddd
+        }
+
+        #choose_table th {
+            height: 30px;
+            text-align: center;
+            vertical-align: middle
+        }
+
+        #choose_table td {
+            height: 30px;
+            text-align: center;
+            vertical-align: middle
+        }
+
+        .menu {
+            margin-left: 100px;
+            width: 110px;
+            padding: 5px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+            border: 2px solid #E2E2E2;
+        }
+
+        .top {
+            width: 800px;
+            height: 45px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            border: 1px solid #E2E2E2;
+            background-color: #F7F7F7;
+            padding: 0px;
+        }
+
+        .content {
+            width: 800px;
+            min-height: 400px;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+            border: 1px solid #E2E2E2;
+            padding: 0px;
+        }
+
+        .menu li {
+            margin: 0px;
+            list-style: none;
+            width: 100px;
+        }
+
+        .li {
+            border-bottom: 1px solid #E2E2E2;
+        }
+
+        .menu li a {
+            display: block;
+            /*将a变成块状*/
+            width: 100px;
+            /*设置块的宽度*/
+            height: 50px;
+            /*设置块的长度*/
+            font-family: Microsoft Yahei;
+            line-height: 50px;
+            /*设置字体在块中的高度*/
+            background-color: #ffffff;
+            margin: 0px 0px;
+            /*块里的高宽通过margin设置*/
+            color: #369bd7;
+            text-align: center;
+            /*字体居中*/
+            text-decoration: none;
+            /*去掉下划线*/
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .menu li a:hover {
+            background-color: #E7E7E7;
+            color: #555555;
+        }
+    </style>
+</head>
+
+<body>
+    <div style=" margin-top: 100px;width:1100px">
+        <div style="float:left;width:20%">
+            <ul class="menu">
+                <li class="li">
+                    <a data-toggle="modal" data-target="#add_set">添加配置</a>
+                </li>
+                <li class="li">
+                    <a data-toggle="modal" onclick="edit()">编辑配置</a>
+                </li>
+                <li>
+                    <a data-toggle="modal" onclick="start()">选择配置</a>
+                </li>
+            </ul>
+        </div>
+        <div style="float:left;margin-left:5%;padding:0px;width:75%">
+            <div class="top">
+                <span style="color:#317EAC;font-family: Microsoft Yahei;line-height: 45px;font-size: 15px;">
+                    <b>抓包结果</b>
+                </span>
+				<div style="float:right;margin-right:5px;height:100%">
+				<input style="margin-top:5px;margin-right:5px;height:80%" type="button" value="刷新"  class="btn btn-primary" onclick="refresh()">
+				</div>
+            </div>
+            <div class="content">
+                <table id="state" align="center" border="1" class="table table-bordered" bordercolor="#dddddd">
+                    <tr>
+                        <th width="8%">设置id</th>
+                        <th width="14%">已抓包数量</th>
+                        <th width="20%">已抓文件大小(MB)</th>
+                        <th width="14%">已存文件数量</th>
+                        <th width="15%">已抓包时间</th>
+                        <th width="17%">抓包状态</th>
+                        <th width="12%">操作</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- 模态框（Modal）通过状态id查看id对应设置 -->
+    <div class="modal fade" id="view_set_id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="width:600px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        查看配置
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <table id="view_set_state_id" width="500" height="400" align="center" cellspacing="10" cellpadding="10">
+                        <tr>
+                            <td align="right" width="100px">
+                                <font color="red">*</font>本地端口</td>
+                            <td>
+                                <span name="port" class="port" type="text"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" width="100px">
+                                <font color="red">*</font>心跳端口</td>
+                            <td>
+                                <span class="heart_port" type="text" name="heart_port"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">
+                                本地ip</td>
+                            <td>
+                                <span name="nativeIp" class="nativeIp"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">
+                                远端ip</td>
+                            <td>
+                                <span name="remoteIp" class="remoteIp"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">
+                                抓包时间(min)</td>
+                            <td>
+                                <span name="during_time" class="during_time" type="text"> </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">文件限制大小</td>
+                            <td>
+                                <span name="file_max_size" class="file_max_size" type="text"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">
+                                <font color="red">*</font>文件名</td>
+                            <td>
+                                <span name="file_name" class="file_name" type="text"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">文件路径</td>
+                            <td>
+                                <span class="folder" type="text" name="folder"></span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 添加设置 -->
+    <div class="modal fade" id="add_set" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="width:650px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        添加配置
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div id="load">
+                        <img src="/static/load.gif">
+                    </div>
+                    <form id="add_set_form">
+                        <table width="500" id="add_set_table" height="400" align="center">
+                            <tr>
+                                <td align="right" width="150px">
+                                    <font color="red">*</font>本地端口&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="port" class="port" type="text" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right" width="100px">
+                                    <font color="red">*</font>心跳端口&nbsp;&nbsp;</td>
+                                <td>
+                                    <input class="heart_port" type="text" name="heart_port" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    本地ip&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="nativeIp" class="nativeIp" type="text" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    远端ip&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="remoteIp" class="remoteIp" type="text" size="30">（正则表达式）
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    抓包时间&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="during_time" class="during_time" type="text" size="30"> min
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">文件限制大小&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="file_max_size" class="file_max_size" type="text" size="30" value="20"> MB
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    <font color="red">*</font>文件名&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="file_name" class="file_name" type="text" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">文件路径&nbsp;&nbsp;</td>
+                                <td>
+                                    <input class="folder" type="text" name="folder" size="30" value="packet">
+                                </td>
+                            </tr>
+                            <tr width="100%">
+                                <td colspan="2">
+                                    <table width="100%">
+                                        <tr>
+                                            <input type="button" id="save_button" class="btn btn-primary" value="保存" style="margin-left:150px;margin-right:80px">
+                                            <input type="reset" value="重置" style="margin-right:100px" class="btn btn-info">
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 编辑设置 -->
+    <div class="modal fade" id="edit_set" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        编辑配置
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <table align="center" border="1" id="edit_set_table" class="table table-bordered" bordercolor="#dddddd">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 修改设置 -->
+    <div class="modal fade" id="modify_set" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        修改配置
+                    </h4>
+                </div>
+                <div id="load1">
+                    <img src="/static/load.gif">
+                </div>
+                <form id="modify_set_form">
+                    <div class="modal-body">
+                        <table width="500" height="400" align="center" cellspacing="10" cellpadding="10">
+                            <tr>
+                                <td align="right">
+                                    <font color="red">*</font>本地端口&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="port" class="port" type="text" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right" width="100px">
+                                    <font color="red">*</font>心跳端口&nbsp;&nbsp;</td>
+                                <td>
+                                    <input class="heart_port" type="text" name="heart_port" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    本地ip&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="nativeIp" class="nativeIp" type="text" size="30">
+                                    <input type="hidden" name="set_id" class="set_id">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    远端ip&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="remoteIp" class="remoteIp" type="text" size="30">（正则表达式）
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    抓包时间&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="during_time" class="during_time" type="text" size="30"> min
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">文件限制大小&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="file_max_size" class="file_max_size" type="text" size="30"> MB
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">
+                                    <font color="red">*</font>文件名&nbsp;&nbsp;</td>
+                                <td>
+                                    <input name="file_name" class="file_name" type="text" size="30">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">文件路径&nbsp;&nbsp;</td>
+                                <td>
+                                    <input class="folder" type="text" name="folder" size="30">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="close" data-dismiss="modal">关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" id="update_button">
+                        提交更改
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 选择配置 -->
+    <div class="modal fade" id="choose_set" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        选择抓包规则
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form id="grasp_set">
+                        <table id="choose_table" align="center" border="1" class="table table-bordered" bordercolor="#dddddd">
+                            <tr>
+                                <th width="4%">id</th>
+                                <th width="7%">本地端口</th>
+                                <th width="7%">心跳端口</th>
+                                <th width="14%">本地ip</th>
+                                <th width="14%">远端ip</th>
+                                <th width="12%">抓包时间(min)</th>
+                                <th width="15%">文件限制大小(MB)</th>
+                                <th width="12%">文件存储路径</th>
+                                <th width="10%">文件名</th>
+                                <th width="5%">选择</th>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="close" data-dismiss="modal">关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" id="start_button">
+                        开始抓包
+                    </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+</body>
+
+</html>
